@@ -13,7 +13,8 @@ uw_url = "https://www.cs.washington.edu/education/courses"
 
 cmu_filename = "cmu_tags"
 berkeley_filename = "berkeley_tags"
-
+stanford_filename = "stanford_tags"
+washington_filename = "washington_tags"
 
 ALCHEMY_API_KEY = os.environ["ALCHEMY_API_KEY"] # will fail if environmental variable not set 
 
@@ -71,6 +72,19 @@ def parse_berkeley_data(filename):
 	write_to_document(total_tags, filename)
 
 
+def parse_stanford_data(filename):
+	def clean_text(text):
+		remove_html = re.sub("<[^>]*>", " ", text)
+		return re.sub("[ ]+", " ", remove_html).strip()
+
+	total_tags = []
+	soup = BeautifulSoup(requests.get(stanford_url).text)
+	for course_desc in enumerate(soup.find_all("p", class_ ="courseblockdesc")):
+		cleaned = clean_text(str(course_desc))
+		total_tags += tag_text_data(cleaned)
+	write_to_document(total_tags, filename)
+
+
 def count_most_popular_tags(filename, count):
 	tag_count = Counter() 
 	with open(filename) as f:
@@ -82,5 +96,7 @@ def count_most_popular_tags(filename, count):
 if __name__ == "__main__":
 	# if not os.path.exists(cmu_filename):
 	# 	parse_cmu_data(cmu_filename)
-	if not os.path.exists(berkeley_filename):
-		parse_berkeley_data(berkeley_filename)
+	# if not os.path.exists(berkeley_filename):
+	# 	parse_berkeley_data(berkeley_filename)
+	if not os.path.exists(stanford_filename):
+		parse_stanford_data(stanford_filename)
