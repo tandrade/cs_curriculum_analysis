@@ -11,10 +11,13 @@ berkeley_url = "http://guide.berkeley.edu/courses/compsci/"
 stanford_url = "http://exploredegrees.stanford.edu/schoolofengineering/computerscience/#courseinventory"
 uw_url = "https://www.cs.washington.edu/education/courses"
 
-cmu_filename = "cmu_tags"
-berkeley_filename = "berkeley_tags"
-stanford_filename = "stanford_tags"
-uw_filename = "washington_tags"
+data_dir = "data"
+
+cmu_filename = os.path.join(data_dir, "cmu_tags")
+berkeley_filename = os.path.join(data_dir, "berkeley_tags")
+stanford_filename = os.path.join(data_dir, "stanford_tags")
+uw_filename = os.path.join(data_dir, "washington_tags")
+
 
 ALCHEMY_API_KEY = os.environ["ALCHEMY_API_KEY"] # will fail if environmental variable not set 
 
