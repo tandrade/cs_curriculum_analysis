@@ -2,9 +2,11 @@ from bs4 import BeautifulSoup
 from collections import Counter
 import operator
 import os 
-import pprint
-import requests
 import re
+import requests
+
+import tag_utils
+
 
 cmu_url = "http://coursecatalog.web.cmu.edu/schoolofcomputerscience/courses/"
 berkeley_url = "http://guide.berkeley.edu/courses/compsci/"
@@ -17,32 +19,6 @@ cmu_filename = os.path.join(data_dir, "cmu_tags")
 berkeley_filename = os.path.join(data_dir, "berkeley_tags")
 stanford_filename = os.path.join(data_dir, "stanford_tags")
 uw_filename = os.path.join(data_dir, "washington_tags")
-
-
-ALCHEMY_API_KEY = os.environ["ALCHEMY_API_KEY"] # will fail if environmental variable not set 
-
-alchemy_endpoint = "http://gateway-a.watsonplatform.net/calls/text/TextGetRankedKeywords"
-
-
-def tag_text_data(txt):
-	parameters = {
-		"apikey": ALCHEMY_API_KEY,
-		"text": txt,
-		"outputMode": "json"
-	}
-
-	r = requests.get(alchemy_endpoint, params=parameters)
-	if "keywords" in r.json():
-		return [tag_obj["text"] for tag_obj in r.json()["keywords"]]
-	# for debugging purposes 
-	print r.json() 
-	return []
-
-
-def write_to_document(tag_list, filename):
-	with open(filename, "w") as f:
-		for tag in tag_list:
-			f.write(tag.encode("utf-8") + "\n")
 
 
 def parse_cmu_data(filename):
@@ -58,8 +34,8 @@ def parse_cmu_data(filename):
 	for course_desc in soup.find_all("dl", class_="courseblock"): 
 		main_desc = course_desc.find_all("dd")[0]
 		cleaned = clean_text(str(main_desc))
-		total_tags += tag_text_data(cleaned)
-	write_to_document(total_tags, filename)
+		total_tags += tag_utils.tag_text_data(cleaned)
+	tag_utils.write_to_document(total_tags, filename)
 
 
 def parse_berkeley_data(filename):
@@ -75,8 +51,8 @@ def parse_berkeley_data(filename):
 	for index, course_desc in enumerate(soup.find_all("div", class_="coursebody")):
 		main_desc = course_desc.find_all("span")[0]
 		cleaned = clean_text(str(main_desc))
-		total_tags += tag_text_data(cleaned)
-	write_to_document(total_tags, filename)
+		total_tags += tag_utils.tag_text_data(cleaned)
+	tag_utils.write_to_document(total_tags, filename)
 
 
 def parse_stanford_data(filename):
@@ -88,8 +64,8 @@ def parse_stanford_data(filename):
 	soup = BeautifulSoup(requests.get(stanford_url).text)
 	for course_desc in enumerate(soup.find_all("p", class_ ="courseblockdesc")):
 		cleaned = clean_text(str(course_desc))
-		total_tags += tag_text_data(cleaned)
-	write_to_document(total_tags, filename)
+		total_tags += tag_utils.tag_text_data(cleaned)
+	tag_utils.write_to_document(total_tags, filename)
 
 
 def parse_washington_data(filename):
@@ -132,11 +108,10 @@ def parse_washington_data(filename):
 		if course_desc[-1:] not in [".", "?", "!"]:
 			course_desc += ". "
 		if index % 2 == 1: 
-			total_tags += tag_text_data(course_desc)
+			total_tags += tag_utils.tag_text_data(course_desc)
 			course_desc = ""
 
-	write_to_document(total_tags, filename)
-	
+	tag_utils.write_to_document(total_tags, filename)
 
 
 def count_most_popular_tags(filename, count):
@@ -148,11 +123,11 @@ def count_most_popular_tags(filename, count):
 
 
 if __name__ == "__main__":
-	# if not os.path.exists(cmu_filename):
-	# 	parse_cmu_data(cmu_filename)
-	# if not os.path.exists(berkeley_filename):
-	# 	parse_berkeley_data(berkeley_filename)
-	# if not os.path.exists(stanford_filename):
-	# 	parse_stanford_data(stanford_filename)
+	if not os.path.exists(cmu_filename):
+		parse_cmu_data(cmu_filename)
+	if not os.path.exists(berkeley_filename):
+		parse_berkeley_data(berkeley_filename)
+	if not os.path.exists(stanford_filename):
+		parse_stanford_data(stanford_filename)
 	if not os.path.exists(uw_filename):
 		parse_washington_data(uw_filename)
